@@ -77,44 +77,6 @@ Generates proper WordPress block format:
 - `<!-- wp:yoast-seo/table-of-contents -->` for TOC
 - `<!-- wp:buttons -->` for CTAs
 
-## 📦 Installation
-
-### For GitHub Pages
-
-1. Fork this repository
-2. Go to Settings → Pages
-3. Select "main" branch
-4. Your site will be live at `https://[username].github.io/wordpress-converter/`
-
-### For Local Development
-
-```bash
-# Clone the repository
-git clone https://github.com/[username]/wordpress-converter.git
-
-# Open in browser
-cd wordpress-converter
-open index.html
-```
-
-No build process or dependencies required!
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📄 License
-
-MIT License - feel free to use this in your projects!
-
-## 🐛 Issues
-
-Found a bug? Please [open an issue](https://github.com/[username]/wordpress-converter/issues) with:
-- Description of the problem
-- Steps to reproduce
-- Expected vs actual behavior
-- Sample content that causes the issue
-
 ## 🎨 Customization
 
 ### Change Colors
