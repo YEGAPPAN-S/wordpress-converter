@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Free tool to convert Google Docs to WordPress block format. Supports FAQ blocks, buttons, tables, nested lists, and automatic table of contents generation.">
+    <meta name="keywords" content="WordPress, Google Docs, converter, FAQ blocks, Yoast SEO, content migration, WordPress blocks">
+    <meta name="author" content="WordPress Converter">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Google Docs to WordPress Converter">
+    <meta property="og:description" content="Convert Google Docs to WordPress block format with automatic FAQ detection, buttons, and table of contents.">
+    <meta property="og:url" content="https://your-username.github.io/wordpress-converter/">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Google Docs to WordPress Converter">
+    <meta name="twitter:description" content="Convert Google Docs to WordPress block format with automatic FAQ detection, buttons, and table of contents.">
+    
+    <title>Google Docs to WordPress Converter - Free Online Tool</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f75a1b 0%, #ff8c42 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #f75a1b 0%, #ff8c42 100%);
+            color: white;
+            padding: 30px 40px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+
+        .left-panel, .right-panel {
+            padding: 40px;
+        }
+
+        .left-panel {
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="url"],
+        input[type="password"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: 'Poppins', sans-serif;
+            transition: border-color 0.3s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #f75a1b;
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .file-upload {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-upload input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .file-upload-label {
+            flex: 1;
+            padding: 12px;
+            border: 2px dashed #e0e0e0;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f9f9f9;
+        }
+
+        .file-upload-label:hover {
+            border-color: #f75a1b;
+            background: #fff5f2;
+        }
+
+        .file-upload-label.has-file {
+            border-color: #4caf50;
+            background: #f1f8f4;
+            color: #4caf50;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f75a1b 0%, #ff8c42 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(247, 90, 27, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-success {
+            background: #4caf50;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-success:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .alert.error {
+            background-color: #fee;
+            border: 2px solid #fcc;
+            color: #c33;
+        }
+
+        .alert.success {
+            background-color: #efe;
+            border: 2px solid #cfc;
+            color: #3c3;
+        }
+
+        .alert.info {
+            background-color: #e3f2fd;
+            border: 2px solid #90caf9;
+            color: #1976d2;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .preview {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .preview.show {
+            display: block;
+        }
+
+        .preview-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .preview-content {
+            background: #f9f9f9;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .preview-content h1, .preview-content h2, .preview-content h3 {
+            color: #333;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .preview-content p {
+            margin-bottom: 15px;
+        }
+
+        .preview-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: #f75a1b;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .code-preview {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-indicator.ready {
+            background: #4caf50;
+        }
+
+        .status-indicator.pending {
+            background: #ff9800;
+        }
+
+        .status-indicator.error {
+            background: #f44336;
+        }
+
+        @media (max-width: 968px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .left-panel {
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 Google Docs to WordPress Converter</h1>
+            <p>Convert your documents to WordPress format with perfect formatting preservation - copy and paste into WordPress</p>
+        </div>
+
+        <div class="content">
+            <div class="left-panel">
+                <div class="section-title">
+                    <span>📄</span>
+                    <span>Document Source</span>
+                </div>
+
+                <div id="alert" class="alert"></div>
+
+                <div class="form-group">
+                    <label>Upload .docx File (from Google Docs)</label>
+                    <div class="file-upload">
+                        <input type="file" id="docxFile" accept=".docx" />
+                        <label for="docxFile" class="file-upload-label" id="fileLabel">
+                            📎 Click to upload .docx file
+                        </label>
+                    </div>
+                    <div class="hint">Export from Google Docs: File → Download → Microsoft Word (.docx)</div>
+                </div>
+
+                <div style="text-align: center; color: #999; margin: 15px 0;">OR</div>
+
+                <div class="form-group">
+                    <label>Paste HTML Content</label>
+                    <textarea id="htmlContent" placeholder="Paste your content here (HTML or plain text)..."></textarea>
+                    <div class="hint">Copy from Google Docs and paste here</div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="convertContent()">🔄 Convert to WordPress Format</button>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="section-title">
+                    <span>📝</span>
+                    <span>Converted Content & Preview</span>
+                </div>
+
+                <div id="rightAlert" class="alert"></div>
+
+                <div class="preview" id="previewSection">
+                    <div class="tabs">
+                        <button class="tab active" onclick="switchTab('visual')">👁️ Visual Preview</button>
+                        <button class="tab" onclick="switchTab('blocks')">🧱 WordPress Blocks</button>
+                        <button class="tab" onclick="switchTab('html')">📋 Clean HTML</button>
+                    </div>
+
+                    <div id="visualTab" class="tab-content active">
+                        <div class="preview-content" id="visualPreview"></div>
+                    </div>
+
+                    <div id="blocksTab" class="tab-content">
+                        <div class="code-preview" id="blocksPreview"></div>
+                        <button class="btn-success" onclick="copyBlocks()" style="margin-top: 15px; width: 100%;">
+                            📋 Copy WordPress Blocks
+                        </button>
+                    </div>
+
+                    <div id="htmlTab" class="tab-content">
+                        <div class="code-preview" id="htmlPreview"></div>
+                        <button class="btn-success" onclick="copyHTML()" style="margin-top: 15px; width: 100%;">
+                            📋 Copy HTML
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.8); font-size: 13px;">
+            <p style="margin: 0;">Made with ❤️ for WordPress Web Developers</p>
+        </div>
+    </div>
+
+    <script>
+        let convertedContent = {
+            html: '',
+            blocks: '',
+            images: []
+        };
+
+        function showAlert(message, type, panel = 'left') {
+            const alert = panel === 'left' ? document.getElementById('alert') : document.getElementById('rightAlert');
+            alert.textContent = message;
+            alert.className = `alert ${type} show`;
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 5000);
+        }
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update tab contents
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.add('active');
+        }
+
+        // File upload handler
+        document.getElementById('docxFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('fileLabel').textContent = `✅ ${file.name}`;
+                document.getElementById('fileLabel').classList.add('has-file');
+            }
+        });
+
+        async function convertContent() {
+            const file = document.getElementById('docxFile').files[0];
+            const htmlContent = document.getElementById('htmlContent').value;
+
+            if (!file && !htmlContent) {
+                showAlert('Please upload a .docx file or paste HTML content', 'error');
+                return;
+            }
+
+            showAlert('Converting content...', 'info');
+
+            try {
+                let html = '';
+
+                if (file) {
+                    // Convert .docx to HTML using Mammoth
+                    const arrayBuffer = await file.arrayBuffer();
+                    const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
+                    html = result.value;
+
+                    if (result.messages.length > 0) {
+                        console.log('Conversion warnings:', result.messages);
+                    }
+                } else {
+                    html = htmlContent;
+                }
+
+                // Process and clean HTML
+                html = cleanHTML(html);
+                
+                // Convert to WordPress blocks
+                const blocks = convertToWordPressBlocks(html);
+
+                // Store converted content
+                convertedContent.html = html;
+                convertedContent.blocks = blocks;
+
+                // Show preview
+                document.getElementById('visualPreview').innerHTML = html;
+                document.getElementById('htmlPreview').textContent = html;
+                document.getElementById('blocksPreview').textContent = blocks;
+                document.getElementById('previewSection').classList.add('show');
+
+                showAlert('✅ Content converted successfully!', 'success');
+                showAlert('✅ Content ready! Click the tabs to view and copy.', 'success', 'right');
+
+            } catch (error) {
+                showAlert('Error converting content: ' + error.message, 'error');
+                console.error(error);
+            }
+        }
+
+        function cleanHTML(html) {
+            // Remove Word-specific styling
+            html = html.replace(/mso-[^;]+;?/gi, '');
+            html = html.replace(/style="[^"]*"/gi, '');
+            
+            // Clean up empty tags
+            html = html.replace(/<p[^>]*>\s*<\/p>/gi, '');
+            html = html.replace(/<span[^>]*>\s*<\/span>/gi, '');
+            
+            // Normalize whitespace
+            html = html.replace(/\s+/g, ' ');
+            html = html.replace(/>\s+</g, '><');
+            
+            return html.trim();
+        }
+
+        function convertToWordPressBlocks(html) {
+            let blocks = '';
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const body = doc.body;
+
+            // Extract all headings for TOC generation
+            const headings = [];
+            body.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(heading => {
+                const level = parseInt(heading.tagName.charAt(1));
+                const text = heading.textContent.trim();
+                const id = generateSlug(text);
+                headings.push({ level, text, id });
+            });
+
+            // Detect FAQ sections
+            const faqSections = detectFAQSections(body);
+
+            // Track if we've added TOC
+            let tocAdded = false;
+            let firstParaProcessed = false;
+            let skipUntilIndex = -1;
+
+            // Process each element
+            const children = Array.from(body.children);
+            children.forEach((element, index) => {
+                // Skip if this element is part of an FAQ section we already processed
+                if (index < skipUntilIndex) return;
+
+                const tagName = element.tagName.toLowerCase();
+
+                // Add TOC after first paragraph if we have headings
+                if (!tocAdded && firstParaProcessed && headings.length > 2) {
+                    blocks += generateTOC(headings);
+                    tocAdded = true;
+                }
+
+                // Check if this is the start of an FAQ section
+                const faqSection = faqSections.find(section => section.startIndex === index);
+                if (faqSection) {
+                    // Add FAQ heading
+                    const faqHeading = children[faqSection.startIndex];
+                    const level = faqHeading.tagName.charAt(1);
+                    const text = faqHeading.textContent.trim();
+                    const id = generateSlug(text);
+                    blocks += `<!-- wp:heading {"level":${level}} -->\n`;
+                    blocks += `<${faqHeading.tagName.toLowerCase()} id="${id}">${text}</${faqHeading.tagName.toLowerCase()}>\n`;
+                    blocks += `<!-- /wp:heading -->\n\n`;
+
+                    // Generate FAQ block
+                    blocks += generateFAQBlockFromPairs(faqSection.pairs);
+                    
+                    // Skip processed elements
+                    skipUntilIndex = faqSection.endIndex + 1;
+                    return;
+                }
+
+                if (tagName.match(/^h[1-6]$/)) {
+                    // Heading block with ID for TOC linking
+                    const level = tagName.charAt(1);
+                    const text = element.textContent.trim();
+                    const id = generateSlug(text);
+                    blocks += `<!-- wp:heading {"level":${level}} -->\n`;
+                    blocks += `<${tagName} id="${id}">${text}</${tagName}>\n`;
+                    blocks += `<!-- /wp:heading -->\n\n`;
+                }
+                else if (tagName === 'p') {
+                    const text = element.textContent;
+                    const innerHTML = element.innerHTML;
+                    
+                    // Check for text in square brackets [Like this]
+                    const bracketMatch = text.match(/\[([^\]]+)\]/);
+                    
+                    if (bracketMatch) {
+                        // Extract link and button text
+                        const links = element.querySelectorAll('a');
+                        if (links.length > 0) {
+                            const link = links[0];
+                            let buttonText = bracketMatch[1];
+                            
+                            // Remove brackets from display text
+                            blocks += generateButtonBlock(link, buttonText);
+                        } else {
+                            // No link found, treat as regular paragraph but remove brackets
+                            const cleanText = innerHTML.replace(/\[([^\]]+)\]/g, '$1');
+                            blocks += `<!-- wp:paragraph -->\n`;
+                            blocks += `<p>${cleanText}</p>\n`;
+                            blocks += `<!-- /wp:paragraph -->\n\n`;
+                        }
+                    }
+                    // Check if paragraph contains button-like links
+                    else {
+                        const links = element.querySelectorAll('a');
+                        let isButton = false;
+                        
+                        links.forEach(link => {
+                            const linkText = link.textContent.toLowerCase();
+                            if (linkText.includes('try') || linkText.includes('get started') || linkText.includes('learn more') || 
+                                linkText.includes('sign up') || linkText.includes('download') || linkText.includes('free')) {
+                                isButton = true;
+                            }
+                        });
+
+                        if (isButton && links.length === 1) {
+                            // Convert to button block
+                            const link = links[0];
+                            blocks += generateButtonBlock(link);
+                        } else {
+                            // Regular paragraph block
+                            blocks += `<!-- wp:paragraph -->\n`;
+                            blocks += `<p>${innerHTML}</p>\n`;
+                            blocks += `<!-- /wp:paragraph -->\n\n`;
+                        }
+                    }
+
+                    if (!firstParaProcessed) {
+                        firstParaProcessed = true;
+                    }
+                }
+                else if (tagName === 'ul' || tagName === 'ol') {
+                    // List block with proper list-item formatting
+                    const listType = tagName;
+                    const isOrdered = listType === 'ol';
+                    
+                    // Add ordered attribute for ol lists
+                    if (isOrdered) {
+                        blocks += `<!-- wp:list {"ordered":true} -->\n`;
+                    } else {
+                        blocks += `<!-- wp:list -->\n`;
+                    }
+                    
+                    blocks += `<${listType} class="wp-block-list">`;
+                    
+                    // Process each list item
+                    Array.from(element.children).forEach(li => {
+                        if (li.tagName.toLowerCase() === 'li') {
+                            blocks += `<!-- wp:list-item -->\n`;
+                            
+                            // Check if li contains nested list
+                            const nestedList = li.querySelector('ul, ol');
+                            if (nestedList) {
+                                // Get text before nested list
+                                const textNode = Array.from(li.childNodes).find(node => 
+                                    node.nodeType === Node.TEXT_NODE || 
+                                    (node.nodeType === Node.ELEMENT_NODE && !['UL', 'OL'].includes(node.tagName))
+                                );
+                                
+                                if (textNode) {
+                                    blocks += `<li>${textNode.textContent || textNode.innerHTML}`;
+                                } else {
+                                    blocks += `<li>`;
+                                }
+                                
+                                // Process nested list
+                                const nestedType = nestedList.tagName.toLowerCase();
+                                const isNestedOrdered = nestedType === 'ol';
+                                
+                                if (isNestedOrdered) {
+                                    blocks += `<!-- wp:list {"ordered":true} -->\n`;
+                                } else {
+                                    blocks += `<!-- wp:list -->\n`;
+                                }
+                                
+                                blocks += `<${nestedType} class="wp-block-list">`;
+                                
+                                Array.from(nestedList.children).forEach(nestedLi => {
+                                    blocks += `<!-- wp:list-item -->\n`;
+                                    blocks += `<li>${nestedLi.innerHTML}</li>\n`;
+                                    blocks += `<!-- /wp:list-item -->\n`;
+                                });
+                                
+                                blocks += `</${nestedType}>\n`;
+                                blocks += `<!-- /wp:list -->`;
+                                blocks += `</li>\n`;
+                            } else {
+                                blocks += `<li>${li.innerHTML}</li>\n`;
+                            }
+                            
+                            blocks += `<!-- /wp:list-item -->\n`;
+                        }
+                    });
+                    
+                    blocks += `</${listType}>\n`;
+                    blocks += `<!-- /wp:list -->\n\n`;
+                }
+                else if (tagName === 'blockquote') {
+                    // Quote block
+                    blocks += `<!-- wp:quote -->\n`;
+                    blocks += element.outerHTML + '\n';
+                    blocks += `<!-- /wp:quote -->\n\n`;
+                }
+                else if (tagName === 'img') {
+                    // Image block
+                    const src = element.getAttribute('src');
+                    const alt = element.getAttribute('alt') || '';
+                    blocks += `<!-- wp:image -->\n`;
+                    blocks += `<figure class="wp-block-image"><img src="${src}" alt="${alt}"/></figure>\n`;
+                    blocks += `<!-- /wp:image -->\n\n`;
+                }
+                else if (tagName === 'table') {
+                    // Table block
+                    blocks += `<!-- wp:table {"className":"pricing-table"} -->\n`;
+                    blocks += `<figure class="wp-block-table pricing-table"><table class="has-fixed-layout">\n`;
+                    blocks += element.innerHTML + '\n';
+                    blocks += `</table></figure>\n`;
+                    blocks += `<!-- /wp:table -->\n\n`;
+                }
+                else {
+                    // Generic HTML block
+                    blocks += `<!-- wp:html -->\n`;
+                    blocks += element.outerHTML + '\n';
+                    blocks += `<!-- /wp:html -->\n\n`;
+                }
+            });
+
+            return blocks;
+        }
+
+        function detectFAQSections(body) {
+            const children = Array.from(body.children);
+            const faqSections = [];
+
+            for (let i = 0; i < children.length; i++) {
+                const element = children[i];
+                const tagName = element.tagName.toLowerCase();
+                
+                // Check if this is an FAQ heading
+                if (tagName.match(/^h[2-4]$/)) {
+                    const text = element.textContent.toLowerCase();
+                    const isFAQHeading = text.includes('faq') || 
+                                       text.includes('frequently asked questions') ||
+                                       text.includes('frequently asked question') ||
+                                       text.includes('question') || 
+                                       text.includes('q&a') || 
+                                       text.includes('q & a');
+                    
+                    if (isFAQHeading) {
+                        // Look for Q: A: pairs after this heading
+                        const pairs = [];
+                        let j = i + 1;
+                        
+                        while (j < children.length) {
+                            const current = children[j];
+                            
+                            if (!current) break;
+                            
+                            const currentTag = current.tagName.toLowerCase();
+                            
+                            // Stop at next major heading
+                            if (currentTag.match(/^h[1-4]$/)) {
+                                break;
+                            }
+                            
+                            // Look for paragraph with Q: or A: pattern
+                            if (currentTag === 'p') {
+                                const fullText = current.textContent.trim();
+                                
+                                // Format 1: Q: question text A: answer text (inline on same line)
+                                // Matches: "Q: What's the best...? A: Yuko is..."
+                                // Use proper pattern that doesn't break on letter 'A' in questions
+                                const inlinePattern = /Q:\s*(.+?)\s+A:\s*(.+?)(?=\s+Q:|$)/gis;
+                                let match;
+                                let foundInline = false;
+                                
+                                // Reset regex index
+                                inlinePattern.lastIndex = 0;
+                                
+                                while ((match = inlinePattern.exec(fullText)) !== null) {
+                                    const question = match[1].trim();
+                                    const answer = match[2].trim();
+                                    
+                                    if (question && answer) {
+                                        pairs.push({
+                                            question: question,
+                                            answer: answer
+                                        });
+                                        foundInline = true;
+                                    }
+                                }
+                                
+                                if (foundInline) {
+                                    j++;
+                                    continue;
+                                }
+                                
+                                // Format 2: Q: question text \n A: answer text (with line break in same paragraph)
+                                const qaPattern = /Q:\s*(.+?)(?:\n|<br>|\s{2,})A:\s*(.+)/is;
+                                const qaMatch = fullText.match(qaPattern);
+                                
+                                if (qaMatch) {
+                                    pairs.push({
+                                        question: qaMatch[1].trim(),
+                                        answer: qaMatch[2].trim()
+                                    });
+                                    j++;
+                                    continue;
+                                }
+                                
+                                // Format 3: Q: in one paragraph, A: in next paragraph
+                                if (fullText.match(/^Q:\s*/i)) {
+                                    const question = fullText.replace(/^Q:\s*/i, '').trim();
+                                    
+                                    // Look for A: in next paragraph(s)
+                                    let k = j + 1;
+                                    let answer = '';
+                                    
+                                    while (k < children.length) {
+                                        const nextEl = children[k];
+                                        if (!nextEl) break;
+                                        
+                                        const nextTag = nextEl.tagName.toLowerCase();
+                                        const nextText = nextEl.textContent.trim();
+                                        
+                                        if (nextTag === 'p' && nextText.match(/^A:\s*/i)) {
+                                            answer = nextText.replace(/^A:\s*/i, '').trim();
+                                            j = k + 1;
+                                            break;
+                                        } else if (nextTag === 'p' && !nextText.match(/^Q:\s*/i)) {
+                                            // Continue looking
+                                            k++;
+                                        } else {
+                                            // Hit something else
+                                            break;
+                                        }
+                                    }
+                                    
+                                    if (question && answer) {
+                                        pairs.push({
+                                            question: question,
+                                            answer: answer
+                                        });
+                                        continue;
+                                    }
+                                }
+                                
+                                // Format 4: Plain question/answer pairs without Q:/A: markers
+                                // Two consecutive paragraphs after FAQ heading
+                                const next = children[j + 1];
+                                if (next && next.tagName.toLowerCase() === 'p' && 
+                                    !fullText.match(/^(Q|A):/i) && 
+                                    !next.textContent.trim().match(/^(Q|A):/i)) {
+                                    
+                                    // This could be a question-answer pair
+                                    // Check if the first paragraph looks like a question
+                                    if (fullText.endsWith('?') || fullText.length < 200) {
+                                        pairs.push({
+                                            question: fullText,
+                                            answer: next.textContent.trim()
+                                        });
+                                        j += 2;
+                                        continue;
+                                    }
+                                }
+                            }
+                            
+                            j++;
+                        }
+                        
+                        if (pairs.length > 0) {
+                            faqSections.push({
+                                startIndex: i,
+                                endIndex: j - 1,
+                                pairs: pairs
+                            });
+                        }
+                    }
+                }
+            }
+
+            return faqSections;
+        }
+
+        function generateFAQBlockFromPairs(pairs) {
+            const questions = pairs.map((faq, index) => {
+                const id = `faq-question-${Date.now() + index}`;
+                return {
+                    id: id,
+                    question: [faq.question],
+                    answer: [faq.answer],
+                    jsonQuestion: faq.question,
+                    jsonAnswer: faq.answer
+                };
+            });
+
+            let block = `<!-- wp:yoast/faq-block {"questions":${JSON.stringify(questions)}} -->\n`;
+            block += `<div class="schema-faq wp-block-yoast-faq-block">`;
+            
+            questions.forEach(q => {
+                block += `<div class="schema-faq-section" id="${q.id}">`;
+                block += `<strong class="schema-faq-question">${q.jsonQuestion}</strong> `;
+                block += `<p class="schema-faq-answer">${q.jsonAnswer}</p> `;
+                block += `</div> `;
+            });
+            
+            block += `</div>\n`;
+            block += `<!-- /wp:yoast/faq-block -->\n\n`;
+
+            return block;
+        }
+
+        function generateSlug(text) {
+            return 'h-' + text.toLowerCase()
+                .replace(/[^\w\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .trim();
+        }
+
+        function generateTOC(headings) {
+            let toc = `<!-- wp:yoast-seo/table-of-contents -->\n`;
+            toc += `<div class="wp-block-yoast-seo-table-of-contents yoast-table-of-contents">`;
+            toc += `<h2>Table of contents</h2><ul>`;
+
+            let previousLevel = 2;
+
+            headings.forEach((heading, index) => {
+                // Skip H1 (usually title)
+                if (heading.level === 1) return;
+
+                const nextHeading = headings[index + 1];
+                const nextLevel = nextHeading && nextHeading.level !== 1 ? nextHeading.level : 2;
+
+                // Open nested list if going deeper
+                if (heading.level > previousLevel) {
+                    toc += '<ul>';
+                }
+
+                // Close nested lists if going shallower
+                if (heading.level < previousLevel) {
+                    for (let i = 0; i < (previousLevel - heading.level); i++) {
+                        toc += '</li></ul>';
+                    }
+                }
+
+                // Add the list item
+                toc += `<li><a href="#${heading.id}" data-level="${heading.level}">${heading.text}</a>`;
+
+                // Close the list item if next is same level or shallower
+                if (nextLevel <= heading.level) {
+                    toc += '</li>';
+                }
+
+                previousLevel = heading.level;
+            });
+
+            // Close any remaining open nested lists
+            while (previousLevel > 2) {
+                toc += '</li></ul>';
+                previousLevel--;
+            }
+
+            toc += `</ul></div>\n`;
+            toc += `<!-- /wp:yoast-seo/table-of-contents -->\n\n`;
+
+            return toc;
+        }
+
+        function generateButtonBlock(link, customText = null) {
+            const href = link.getAttribute('href') || '#';
+            let text = customText || link.textContent.trim();
+            
+            // Remove brackets if present
+            text = text.replace(/^\[|\]$/g, '');
+            
+            let button = `<!-- wp:buttons {"layout":{"type":"flex","orientation":"horizontal","flexWrap":"wrap"}} -->\n`;
+            button += `<div class="wp-block-buttons">`;
+            button += `<!-- wp:button {"textAlign":"left","textColor":"white","className":"text-link demo-btn is-style-outline","style":{"border":{"radius":"8px"},"typography":{"fontSize":"20px"},"color":{"background":"#6f65f8"}}} -->\n`;
+            button += `<div class="wp-block-button text-link demo-btn is-style-outline">`;
+            button += `<a class="wp-block-button__link has-white-color has-text-color has-background has-text-align-left has-custom-font-size wp-element-button" `;
+            button += `href="${href}" style="border-radius:8px;background-color:#6f65f8;font-size:20px" target="_blank" rel="noreferrer noopener">`;
+            button += text;
+            button += `</a></div>\n`;
+            button += `<!-- /wp:button --></div>\n`;
+            button += `<!-- /wp:buttons -->\n\n`;
+
+            return button;
+        }
+
+
+        function copyBlocks() {
+            const blocks = convertedContent.blocks;
+            navigator.clipboard.writeText(blocks).then(() => {
+                showAlert('✅ WordPress Blocks copied! Paste into WordPress Code Editor.', 'success', 'right');
+            }).catch(err => {
+                showAlert('Failed to copy to clipboard', 'error', 'right');
+            });
+        }
+
+        function copyHTML() {
+            const html = convertedContent.html;
+            navigator.clipboard.writeText(html).then(() => {
+                showAlert('✅ HTML copied to clipboard!', 'success', 'right');
+            }).catch(err => {
+                showAlert('Failed to copy to clipboard', 'error', 'right');
+            });
+        }
+    </script>
+</body>
+</html>
