@@ -569,6 +569,44 @@
             return html.trim();
         }
 
+        function addTargetBlankToLinks(html) {
+            // Add target="_blank" and rel="noopener noreferrer" to all links using regex
+            // This preserves the HTML structure without DOM parsing issues
+            
+            // Match <a> tags and add attributes
+            html = html.replace(/<a\s+([^>]*?)>/gi, (match, attrs) => {
+                // Check if target already exists
+                if (/target\s*=\s*["'][^"']*["']/i.test(attrs)) {
+                    // Target exists, check if it's _blank
+                    if (!/target\s*=\s*["']_blank["']/i.test(attrs)) {
+                        // Replace existing target with _blank
+                        attrs = attrs.replace(/target\s*=\s*["'][^"']*["']/i, 'target="_blank"');
+                    }
+                } else {
+                    // Add target="_blank"
+                    attrs += ' target="_blank"';
+                }
+                
+                // Check if rel already exists
+                if (/rel\s*=\s*["'][^"']*["']/i.test(attrs)) {
+                    // Rel exists, ensure it has noopener noreferrer
+                    attrs = attrs.replace(/rel\s*=\s*["']([^"']*)["']/i, (m, relValue) => {
+                        const relParts = relValue.split(/\s+/).filter(v => v);
+                        if (!relParts.includes('noopener')) relParts.push('noopener');
+                        if (!relParts.includes('noreferrer')) relParts.push('noreferrer');
+                        return `rel="${relParts.join(' ')}"`;
+                    });
+                } else {
+                    // Add rel="noopener noreferrer"
+                    attrs += ' rel="noopener noreferrer"';
+                }
+                
+                return `<a ${attrs}>`;
+            });
+            
+            return html;
+        }
+
         function convertToWordPressBlocks(html) {
             let blocks = '';
             const parser = new DOMParser();
@@ -614,8 +652,13 @@
                     const level = faqHeading.tagName.charAt(1);
                     const text = faqHeading.textContent.trim();
                     const id = generateSlug(text);
+                    let innerHTML = faqHeading.innerHTML;
+                    
+                    // Add target="_blank" to all links in FAQ heading
+                    innerHTML = addTargetBlankToLinks(innerHTML);
+                    
                     blocks += `<!-- wp:heading {"level":${level}} -->\n`;
-                    blocks += `<${faqHeading.tagName.toLowerCase()} id="${id}">${text}</${faqHeading.tagName.toLowerCase()}>\n`;
+                    blocks += `<${faqHeading.tagName.toLowerCase()} id="${id}">${innerHTML}</${faqHeading.tagName.toLowerCase()}>\n`;
                     blocks += `<!-- /wp:heading -->\n\n`;
 
                     // Generate FAQ block
@@ -631,13 +674,21 @@
                     const level = tagName.charAt(1);
                     const text = element.textContent.trim();
                     const id = generateSlug(text);
+                    let innerHTML = element.innerHTML;
+                    
+                    // Add target="_blank" to all links in heading
+                    innerHTML = addTargetBlankToLinks(innerHTML);
+                    
                     blocks += `<!-- wp:heading {"level":${level}} -->\n`;
-                    blocks += `<${tagName} id="${id}">${text}</${tagName}>\n`;
+                    blocks += `<${tagName} id="${id}">${innerHTML}</${tagName}>\n`;
                     blocks += `<!-- /wp:heading -->\n\n`;
                 }
                 else if (tagName === 'p') {
                     const text = element.textContent;
-                    const innerHTML = element.innerHTML;
+                    let innerHTML = element.innerHTML;
+                    
+                    // Add target="_blank" to all links in this paragraph
+                    innerHTML = addTargetBlankToLinks(innerHTML);
                     
                     // Check for text in square brackets [Like this]
                     const bracketMatch = text.match(/\[([^\]]+)\]/);
@@ -717,7 +768,8 @@
                                 );
                                 
                                 if (textNode) {
-                                    blocks += `<li>${textNode.textContent || textNode.innerHTML}`;
+                                    const content = textNode.textContent || textNode.innerHTML;
+                                    blocks += `<li>${addTargetBlankToLinks(content)}`;
                                 } else {
                                     blocks += `<li>`;
                                 }
@@ -736,7 +788,7 @@
                                 
                                 Array.from(nestedList.children).forEach(nestedLi => {
                                     blocks += `<!-- wp:list-item -->\n`;
-                                    blocks += `<li>${nestedLi.innerHTML}</li>\n`;
+                                    blocks += `<li>${addTargetBlankToLinks(nestedLi.innerHTML)}</li>\n`;
                                     blocks += `<!-- /wp:list-item -->\n`;
                                 });
                                 
@@ -744,7 +796,7 @@
                                 blocks += `<!-- /wp:list -->`;
                                 blocks += `</li>\n`;
                             } else {
-                                blocks += `<li>${li.innerHTML}</li>\n`;
+                                blocks += `<li>${addTargetBlankToLinks(li.innerHTML)}</li>\n`;
                             }
                             
                             blocks += `<!-- /wp:list-item -->\n`;
@@ -757,7 +809,7 @@
                 else if (tagName === 'blockquote') {
                     // Quote block
                     blocks += `<!-- wp:quote -->\n`;
-                    blocks += element.outerHTML + '\n';
+                    blocks += addTargetBlankToLinks(element.outerHTML) + '\n';
                     blocks += `<!-- /wp:quote -->\n\n`;
                 }
                 else if (tagName === 'img') {
@@ -772,14 +824,14 @@
                     // Table block
                     blocks += `<!-- wp:table {"className":"pricing-table"} -->\n`;
                     blocks += `<figure class="wp-block-table pricing-table"><table class="has-fixed-layout">\n`;
-                    blocks += element.innerHTML + '\n';
+                    blocks += addTargetBlankToLinks(element.innerHTML) + '\n';
                     blocks += `</table></figure>\n`;
                     blocks += `<!-- /wp:table -->\n\n`;
                 }
                 else {
                     // Generic HTML block
                     blocks += `<!-- wp:html -->\n`;
-                    blocks += element.outerHTML + '\n';
+                    blocks += addTargetBlankToLinks(element.outerHTML) + '\n';
                     blocks += `<!-- /wp:html -->\n\n`;
                 }
             });
